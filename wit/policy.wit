@@ -1,0 +1,43 @@
+package demo:policy@0.1.0;
+
+/// A user policy component. The host runs it in a Hyperlight sandbox.
+world policy {
+    export handler;
+}
+
+/// What the guest sees and does.
+interface handler {
+    use types.{request, decision};
+
+    /// The host calls this once per API request. The guest reads the
+    /// request and returns what the gateway should do.
+    on-request: func(req: request) -> decision;
+}
+
+interface types {
+    /// One HTTP header. Names may repeat.
+    record header {
+        name: string,
+        value: string,
+    }
+
+    /// The request the host passes to the guest.
+    record request {
+        method: string,      // "GET", "POST"
+        path: string,        // "/orders/42"
+        headers: list<header>,
+    }
+
+    /// What the gateway does with the request.
+    variant decision {
+        /// Forward to the backend.
+        allow,
+        /// Reject with this status and message.
+        reject(rejection),
+    }
+
+    record rejection {
+        status: u16,         // 401, 429
+        message: string,
+    }
+}
